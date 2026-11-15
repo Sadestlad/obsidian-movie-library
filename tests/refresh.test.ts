@@ -179,7 +179,7 @@ describe('Refresh TMDB notes (stand-in answers)', () => {
 	it('needs the key, and stops when TMDB rejects it', async () => {
 		app.vault.put(NOTE, movieNote('created: "2025-01-01 10:00:00"'));
 		await refreshTmdbNotes(plugin(false));
-		assert.ok(notices.includes('Refreshing needs your TMDB key. Add it in Settings → Watchlist Notes → TMDB.'));
+		assert.ok(notices.includes('Refreshing needs your TMDB key. Add it in Settings → Watchlist Notes Plus → TMDB.'));
 		assert.equal(ui.choices.length, 0);
 		assert.equal(requests.length, 0);
 

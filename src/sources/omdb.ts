@@ -58,7 +58,7 @@ function omdbKey(plugin: WatchlistNotesPlugin): string {
 /** GET from OMDb. Resolves with null when OMDb found nothing; throws for every other problem. */
 async function omdbGet(params: Record<string, string>, plugin: WatchlistNotesPlugin, progress?: Progress): Promise<Record<string, unknown> | null> {
 	const key = omdbKey(plugin);
-	if (!key) throw new MediaError('config', 'OMDb needs a key. Add one in Settings → Watchlist Notes → OMDb.');
+	if (!key) throw new MediaError('config', 'OMDb needs a key. Add one in Settings → Watchlist Notes Plus → OMDb.');
 	const query = new URLSearchParams({ ...params, apikey: key });
 	const response = await httpRequest(`${BASE}?${query.toString()}`, { sourceName: NAME, throttle: THROTTLE, onProgress: progress });
 	// OMDb answers problems as {"Response":"False","Error":"…"}, with status 200 or 401.
@@ -77,8 +77,8 @@ async function omdbGet(params: Record<string, string>, plugin: WatchlistNotesPlu
 
 /** OMDb's error texts, in words the user can act on. */
 export function omdbError(error: string): MediaError {
-	if (/invalid api key/i.test(error)) return new MediaError('auth', 'OMDb rejected the key. Check it in Settings → Watchlist Notes → OMDb.');
-	if (/no api key/i.test(error)) return new MediaError('config', 'OMDb needs a key. Add one in Settings → Watchlist Notes → OMDb.');
+	if (/invalid api key/i.test(error)) return new MediaError('auth', 'OMDb rejected the key. Check it in Settings → Watchlist Notes Plus → OMDb.');
+	if (/no api key/i.test(error)) return new MediaError('config', 'OMDb needs a key. Add one in Settings → Watchlist Notes Plus → OMDb.');
 	if (/limit reached/i.test(error)) {
 		return new MediaError('rate-limited', "Your OMDb key has used up today's 1,000 requests. Try again tomorrow, or search another source.");
 	}

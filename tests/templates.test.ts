@@ -8,7 +8,9 @@ import { sampleTitle } from './support/titles';
 
 const now = { format: (format: string) => ({ 'YYYY-MM-DD HH:mm:ss': '2026-10-06 12:00:00' })[format] ?? `<${format}>` };
 const props = (note: string) => parse(note.match(/^---\n([\s\S]*?)\n---\n/)?.[1] ?? '') as Record<string, unknown>;
-const SHARED_END = ['watched', 'rating', 'owned', 'streaming', 'source', 'sourceUrl', 'created', 'link'];
+const SHARED_END = ['watched', 'myStatus', 'progress', 'rating', 'finished', 'owned', 'streaming', 'source', 'sourceUrl', 'created', 'link'];
+// Movies have nothing to count.
+const MOVIE_END = SHARED_END.filter((key) => key !== 'progress');
 
 describe('built-in templates', () => {
 	it('movie: the agreed properties, a poster link, and a link back to the library note', () => {
@@ -17,7 +19,7 @@ describe('built-in templates', () => {
 		const p = props(note);
 		assert.deepEqual(Object.keys(p), [
 			'tags', 'title', 'originalTitle', 'year', 'releaseDate', 'director', 'cast', 'genre', 'runtime', 'score', 'description', 'cover', 'localCover',
-			...SHARED_END,
+			...MOVIE_END,
 		]);
 		assert.deepEqual(p.tags, ['🎬Movie']);
 		assert.equal(p.originalTitle, null, 'same as the title, so left empty');
@@ -28,6 +30,8 @@ describe('built-in templates', () => {
 		assert.equal(p.score, 8.37);
 		assert.equal(p.localCover, '[[Watch Library/Posters/Inception (2010) - tmdb-movie-27205.jpg]]');
 		assert.equal(p.watched, false);
+		assert.equal(p.myStatus, 'Planned');
+		assert.equal(p.finished, null);
 		assert.equal(p.rating, 'N/A');
 		assert.equal(p.owned, 'N/A');
 		assert.equal(p.streaming, 'N/A');
@@ -67,6 +71,26 @@ describe('built-in templates', () => {
 		assert.equal(p.japaneseTitle, '葬送のフリーレン');
 		assert.equal(p.format, 'TV');
 		assert.deepEqual(p.studio, ['Madhouse']);
+		assert.equal(p.progress, 0);
+		assert.equal(p.myStatus, 'Planned');
+	});
+
+	it('manga: the agreed properties, chapters, volumes, and authors', () => {
+		const title = sampleTitle('manga');
+		const p = props(renderTemplate(BUILT_IN_TEMPLATES.manga, buildVariables(title, { noteTitle: displayTitle(title, 'english'), posterPath: null, libraryNoteName: 'Watch Library MOC' }), now));
+		assert.deepEqual(Object.keys(p), [
+			'tags', 'title', 'englishTitle', 'romajiTitle', 'japaneseTitle', 'format', 'year', 'chapters', 'volumes', 'status', 'firstPublished', 'lastPublished', 'author', 'genre', 'score', 'description', 'cover', 'localCover',
+			...SHARED_END,
+		]);
+		assert.deepEqual(p.tags, ['📚Manga']);
+		assert.equal(p.title, 'Solo Leveling');
+		assert.equal(p.japaneseTitle, '나 혼자만 레벨업');
+		assert.equal(p.format, 'Manhwa');
+		assert.equal(p.chapters, 200);
+		assert.equal(p.volumes, null, 'unknown: left empty');
+		assert.deepEqual(p.author, ['Chugong', 'Jang Sung-Rak']);
+		assert.equal(p.firstPublished, '2018-03-04');
+		assert.equal(p.progress, 0);
 	});
 
 	it('has the other variables for custom templates', () => {
@@ -85,7 +109,8 @@ describe('titles', () => {
 		const noEnglish = sampleTitle('anime', { englishTitle: '', japaneseTitle: '' });
 		assert.equal(displayTitle(noEnglish, 'english'), 'Sousou no Frieren');
 		assert.equal(displayTitle(noEnglish, 'japanese'), 'Sousou no Frieren');
-		assert.equal(displayTitle(sampleTitle('movie'), 'japanese'), 'Inception', 'only anime');
+		assert.equal(displayTitle(sampleTitle('movie'), 'japanese'), 'Inception', 'only anime and manga');
+		assert.equal(displayTitle(sampleTitle('manga'), 'romaji'), 'Na Honjaman Level Up');
 	});
 
 	it('describes each result in one line', () => {
@@ -93,5 +118,12 @@ describe('titles', () => {
 		assert.equal(resultDetails(sampleTitle('tv')), '2022 · Apple TV · Running');
 		assert.equal(resultDetails(sampleTitle('anime')), '2023 · TV · 28 episodes · Madhouse');
 		assert.equal(resultDetails(sampleTitle('anime', { format: 'Movie', episodes: 1, year: null })), 'Movie · 1 episode · Madhouse');
+	});
+});
+
+describe('results list', () => {
+	it('shows manga type, chapters (or status), and author', () => {
+		assert.equal(resultDetails(sampleTitle('manga')), '2018 · Manhwa · 200 chapters · Chugong');
+		assert.equal(resultDetails(sampleTitle('manga', { chapters: null, status: 'Publishing' })), '2018 · Manhwa · Publishing · Chugong');
 	});
 });

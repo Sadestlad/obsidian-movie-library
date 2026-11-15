@@ -16,6 +16,7 @@ export const SOURCE_ORDER: Record<MediaType, readonly SourceId[]> = {
 	movie: ['tmdb', 'omdb'],
 	tv: ['tvmaze', 'tmdb', 'omdb'],
 	anime: ['tenrai', 'jikan', 'tmdb'],
+	manga: ['jikan'],
 };
 
 export function getSource(id: string): MediaSource | undefined {
@@ -36,17 +37,18 @@ export function sourceOrder(plugin: WatchlistNotesPlugin, type: MediaType, first
 	return start ? [start, ...available.filter((source) => source !== start)] : [];
 }
 
-// "tt1375666" or an IMDb link; a MyAnimeList anime link; a year in parentheses at the end.
+// "tt1375666" or an IMDb link; a MyAnimeList anime or manga link; a year in parentheses at the end.
 // A bare year isn't used ("Blade Runner 2049" is a title).
 const IMDB_ID = /^(?:https?:\/\/(?:www\.|m\.)?imdb\.com\/title\/)?(tt\d{7,10})\b/i;
-const MAL_LINK = /myanimelist\.net\/anime\/(\d+)/i;
+const MAL_LINK = /myanimelist\.net\/(anime|manga)\/(\d+)/i;
 const YEAR_SUFFIX = /^(.*\S)\s*\((\d{4})\)$/;
 
 /** Take apart what the user typed. */
 export function parseQuery(input: string): SearchQuery {
 	const text = input.trim();
 	const imdbId = IMDB_ID.exec(text)?.[1]?.toLowerCase() ?? null;
-	const malId = MAL_LINK.exec(text)?.[1];
+	const malLink = MAL_LINK.exec(text);
+	const malId = malLink?.[2];
 	const withYear = YEAR_SUFFIX.exec(text);
 	const year = withYear ? Number(withYear[2]) : NaN;
 	const validYear = year >= 1870 && year <= 2100;
@@ -55,6 +57,7 @@ export function parseQuery(input: string): SearchQuery {
 		year: validYear ? year : null,
 		imdbId,
 		malId: malId ? Number(malId) : null,
+		malKind: malLink ? (malLink[1]?.toLowerCase() === 'manga' ? 'manga' : 'anime') : null,
 	};
 }
 
@@ -85,6 +88,7 @@ const SEARCH_HINTS: Record<MediaType, string> = {
 	movie: 'Try fewer words, or the IMDb ID.',
 	tv: 'Try fewer words, or the IMDb ID.',
 	anime: 'Try fewer words, the romaji title, or the MyAnimeList link.',
+	manga: 'Try fewer words, the romaji title, or the MyAnimeList link.',
 };
 
 /**
@@ -103,7 +107,7 @@ export async function searchTitles(
 	const order = sourceOrder(plugin, type, first);
 	const primary = order[0];
 	if (!primary) {
-		throw new MediaError('config', `No ${MEDIA_WORDS[type].one} source is set up. Check the Watchlist Notes settings.`);
+		throw new MediaError('config', `No ${MEDIA_WORDS[type].one} source is set up. Check the Watchlist Notes Plus settings.`);
 	}
 	const candidates = plugin.settings.useFallback ? order : [primary];
 

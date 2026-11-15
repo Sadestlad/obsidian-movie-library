@@ -13,7 +13,7 @@ const prod = process.argv[2] === 'production';
 
 // In dev mode, copy each build into the local test vault so Obsidian (with the
 // Hot Reload plugin) picks it up. Skipped if the test vault doesn't exist.
-const TEST_VAULT_PLUGIN_DIR = 'test-vault/.obsidian/plugins/watchlist-notes';
+const TEST_VAULT_PLUGIN_DIR = 'test-vault/.obsidian/plugins/watchlist-notes-plus';
 const copyToTestVault = {
 	name: 'copy-to-test-vault',
 	setup(build) {

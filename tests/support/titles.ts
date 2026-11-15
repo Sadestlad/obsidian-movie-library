@@ -60,6 +60,25 @@ export function sampleTitle(type: MediaType, overrides: Partial<Title> = {}): Ti
 			posterDownloadUrl: 'https://cdn.myanimelist.net/images/anime/1015/138006l.jpg',
 			source: { id: 'tenrai', name: 'Tenrai', url: 'https://myanimelist.net/anime/52991/Sousou_no_Frieren', key: 'mal-52991' },
 		},
+		manga: {
+			title: 'Na Honjaman Level Up',
+			englishTitle: 'Solo Leveling',
+			romajiTitle: 'Na Honjaman Level Up',
+			japaneseTitle: '나 혼자만 레벨업',
+			format: 'Manhwa',
+			year: 2018,
+			chapters: 200,
+			status: 'Finished',
+			firstAired: '2018-03-04',
+			lastAired: '2023-12-29',
+			creators: ['Chugong', 'Jang Sung-Rak'],
+			genres: ['Action', 'Adventure', 'Fantasy'],
+			score: 8.65,
+			description: 'E-rank hunter Jinwoo Sung levels up alone.',
+			posterUrl: 'https://cdn.myanimelist.net/images/manga/3/222295l.jpg',
+			posterDownloadUrl: 'https://cdn.myanimelist.net/images/manga/3/222295l.jpg',
+			source: { id: 'jikan', name: 'Jikan', url: 'https://myanimelist.net/manga/121496/Na_Honjaman_Level_Up', key: 'mal-manga-121496' },
+		},
 	};
 	const sample = samples[type];
 	return { ...emptyTitle(type, sample.source!), ...sample, ...overrides };
@@ -94,6 +113,50 @@ export function jikanAnswer() {
 				studios: [{ name: 'Madhouse' }],
 				genres: [{ name: 'Adventure' }, { name: 'Award Winning' }, { name: 'Fantasy' }],
 			},
+		],
+	};
+}
+
+/** A Jikan v4 manga search answer: a manhwa, a finished manga, and a doujinshi that's left out. Hand-made, in Jikan's shape. */
+export function jikanMangaAnswer() {
+	return {
+		data: [
+			{
+				mal_id: 121496,
+				url: 'https://myanimelist.net/manga/121496/Na_Honjaman_Level_Up',
+				images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/manga/3/222295.jpg', small_image_url: 'https://cdn.myanimelist.net/images/manga/3/222295t.jpg', large_image_url: 'https://cdn.myanimelist.net/images/manga/3/222295l.jpg' } },
+				titles: [{ type: 'Default', title: 'Na Honjaman Level Up' }, { type: 'English', title: 'Solo Leveling' }],
+				title: 'Na Honjaman Level Up',
+				title_english: 'Solo Leveling',
+				title_japanese: '나 혼자만 레벨업',
+				type: 'Manhwa',
+				chapters: 200,
+				volumes: null,
+				status: 'Finished',
+				published: { from: '2018-03-04T00:00:00+00:00', to: '2023-12-29T00:00:00+00:00' },
+				score: 8.65,
+				synopsis: 'E-rank hunter Jinwoo Sung levels up alone.\n\n[Written by MAL Rewrite]',
+				authors: [{ mal_id: 1, type: 'people', name: 'Chugong' }, { mal_id: 2, type: 'people', name: 'Jang, Sung-Rak' }],
+				genres: [{ mal_id: 1, type: 'manga', name: 'Action' }, { mal_id: 2, type: 'manga', name: 'Adventure' }, { mal_id: 10, type: 'manga', name: 'Fantasy' }],
+			},
+			{
+				mal_id: 2,
+				url: 'https://myanimelist.net/manga/2/Berserk',
+				images: { jpg: { image_url: 'https://cdn.myanimelist.net/images/manga/1/157897.jpg' } },
+				title: 'Berserk',
+				title_english: 'Berserk',
+				title_japanese: 'ベルセルク',
+				type: 'Manga',
+				chapters: null,
+				volumes: null,
+				status: 'Publishing',
+				published: { from: '1989-08-25T00:00:00+00:00', to: null },
+				score: 9.47,
+				synopsis: 'Guts, a former mercenary, is out for revenge.',
+				authors: [{ mal_id: 1868, type: 'people', name: 'Miura, Kentarou' }],
+				genres: [],
+			},
+			{ mal_id: 999, title: 'Some fan comic', type: 'Doujinshi', published: { from: '2020-01-01T00:00:00+00:00' } },
 		],
 	};
 }

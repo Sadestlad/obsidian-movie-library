@@ -73,6 +73,7 @@ describe('folders', () => {
 				movie: 'Synced Notes/Watch Library/Movies',
 				tv: 'Synced Notes/Watch Library/Series',
 				anime: 'Synced Notes/Watch Library/Anime',
+				manga: 'Synced Notes/Watch Library/Manga',
 			},
 			posters: 'Synced Notes/Watch Library/Posters',
 			libraryNoteName: 'Watch library MOC',

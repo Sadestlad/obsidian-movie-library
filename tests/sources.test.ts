@@ -11,12 +11,17 @@ import { makeApp, makePlugin } from './support/vault';
 
 describe('reading the search text', () => {
 	it('finds a year in parentheses, an IMDb ID or link, and a MyAnimeList link', () => {
-		assert.deepEqual(parseQuery('  Dune (2021) '), { text: 'Dune', year: 2021, imdbId: null, malId: null });
-		assert.deepEqual(parseQuery('Blade Runner 2049'), { text: 'Blade Runner 2049', year: null, imdbId: null, malId: null }, 'a bare number is part of the title');
+		assert.deepEqual(parseQuery('  Dune (2021) '), { text: 'Dune', year: 2021, imdbId: null, malId: null, malKind: null });
+		assert.deepEqual(parseQuery('Blade Runner 2049'), { text: 'Blade Runner 2049', year: null, imdbId: null, malId: null, malKind: null }, 'a bare number is part of the title');
 		assert.equal(parseQuery('Brazil (0042)').year, null, 'not a plausible year');
 		assert.equal(parseQuery('TT1375666').imdbId, 'tt1375666');
 		assert.equal(parseQuery('https://www.imdb.com/title/tt11280740/?ref_=nv').imdbId, 'tt11280740');
 		assert.equal(parseQuery('https://myanimelist.net/anime/52991/Sousou_no_Frieren').malId, 52991);
+		assert.equal(parseQuery('https://myanimelist.net/anime/52991/Sousou_no_Frieren').malKind, 'anime');
+		assert.deepEqual(
+			[parseQuery('https://myanimelist.net/manga/121496/Solo_Leveling').malId, parseQuery('https://myanimelist.net/manga/121496/Solo_Leveling').malKind],
+			[121496, 'manga'],
+		);
 		assert.equal(parseQuery('52991').malId, null, 'a bare number is a title');
 	});
 });
@@ -152,7 +157,7 @@ describe('choosing and falling back between sources', () => {
 		const tvmaze = standIn('tvmaze', 'TVmaze', ['tv'], () => 'results');
 		use(tvmaze.source);
 		await searchTitles('The Office (2001)', 'tv', plugin(), undefined);
-		assert.deepEqual(tvmaze.calls[0], { text: 'The Office', year: 2001, imdbId: null, malId: null });
+		assert.deepEqual(tvmaze.calls[0], { text: 'The Office', year: 2001, imdbId: null, malId: null, malKind: null });
 		await assert.rejects(searchTitles('Inception', 'movie', plugin(), undefined), /No movie source is set up/);
 	});
 });

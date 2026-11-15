@@ -23,6 +23,7 @@ export function libraryPaths(settings: WatchlistNotesSettings): LibraryPaths {
 			movie: joinPath(root, normalizeFolder(settings.moviesFolder)),
 			tv: joinPath(root, normalizeFolder(settings.tvFolder)),
 			anime: joinPath(root, normalizeFolder(settings.animeFolder)),
+			manga: joinPath(root, normalizeFolder(settings.mangaFolder)),
 		},
 		posters: joinPath(root, normalizeFolder(settings.postersFolder)),
 		libraryNoteName,

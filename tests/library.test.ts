@@ -43,9 +43,14 @@ describe('library tables', () => {
 	});
 
 	it('has the agreed columns for each type, with the poster column that accepts every image form', () => {
-		const common = ['AS Poster', 'AS Title', 'year AS Year', 'genre AS Genre', 'file.link AS Note', 'choice(watched, "🟩", "🟥") AS Watched,', 'owned AS Owned,', 'streaming AS Streaming\nFROM'];
-		const own = { movie: ['director AS Director'], tv: ['creator AS Creator'], anime: ['format AS Format', 'studio AS Studio'] } as const;
-		for (const type of ['movie', 'tv', 'anime'] as const) {
+		const common = ['AS Poster', 'AS Title', 'year AS Year', 'genre AS Genre', 'file.link AS Note', 'myStatus AS Status,', 'choice(watched, "🟩", "🟥") AS Watched,', 'rating AS Rating,', 'owned AS Owned,'];
+		const own = {
+			movie: ['director AS Director', 'streaming AS Streaming'],
+			tv: ['creator AS Creator', 'streaming AS Streaming'],
+			anime: ['format AS Format', 'studio AS Studio', 'streaming AS Streaming'],
+			manga: ['format AS Type', 'author AS Author', 'streaming AS "Read on"'],
+		} as const;
+		for (const type of ['movie', 'tv', 'anime', 'manga'] as const) {
 			const query = tableQuery(type, 'X', 'english');
 			for (const column of [...common, ...own[type]]) assert.ok(query.includes(column), `${type}: ${column}`);
 			assert.ok(query.includes(String.raw`regexreplace(string(localCover), "^!?\[\[|\|.*$|\]\]$|^/", "")`));
@@ -62,11 +67,17 @@ describe('library tables', () => {
 		assert.ok(tableQuery('movie', 'X', 'japanese').includes('default(title, file.name) AS Title'), 'other types ignore the setting');
 	});
 
-	it('creates a full-width note with three headed tables between markers', () => {
+	it('creates a full-width note with a "currently" table and one headed table per type between markers', () => {
 		const note = newLibraryNote(settings());
 		assert.match(note, /^---\ncssclasses:\n {2}- watchlist-notes-moc\n---\n# Watch Library\n/);
-		assert.deepEqual([...note.matchAll(/^## (.+)$/gm)].map((m) => m[1]), ['Movies', 'TV shows', 'Anime']);
-		assert.deepEqual([...note.matchAll(/^FROM "(.+)"$/gm)].map((m) => m[1]), ['Watch Library/Movies', 'Watch Library/TV Shows', 'Watch Library/Anime']);
+		assert.deepEqual([...note.matchAll(/^## (.+)$/gm)].map((m) => m[1]), ['Currently watching & reading', 'Movies', 'TV shows', 'Anime', 'Manga & manhwa']);
+		assert.deepEqual([...note.matchAll(/^FROM (.+)$/gm)].map((m) => m[1]), [
+			'"Watch Library/Movies" OR "Watch Library/TV Shows" OR "Watch Library/Anime" OR "Watch Library/Manga"',
+			'"Watch Library/Movies"',
+			'"Watch Library/TV Shows"',
+			'"Watch Library/Anime"',
+			'"Watch Library/Manga"',
+		]);
 		assert.equal(planRegeneration(note).kind, 'markers');
 	});
 
@@ -222,8 +233,10 @@ describe('watched status', () => {
 		const file = app.vault.put('Watch Library/Movies/Inception.md', '---\ntitle: Inception\nrating: 9\nread: true\n---\nMy notes.\n') as unknown as TFile;
 		assert.equal(await toggleWatched(app as never, file), true);
 		assert.equal(frontmatter(app, file.path).watched, true);
+		assert.equal(frontmatter(app, file.path).myStatus, 'Completed', 'watched means completed');
+		assert.match(String(frontmatter(app, file.path).finished), /^\d{4}-\d{2}-\d{2}$/);
 		assert.equal(await toggleWatched(app as never, file), false);
-		assert.deepEqual(frontmatter(app, file.path), { title: 'Inception', rating: 9, read: true, watched: false });
+		assert.deepEqual(frontmatter(app, file.path), { title: 'Inception', rating: 9, read: true, watched: false, myStatus: 'Planned', finished: null });
 		assert.match(app.files.get(file.path) as string, /My notes\.\n$/);
 	});
 });

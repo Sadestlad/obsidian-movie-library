@@ -91,7 +91,7 @@ function language(plugin: WatchlistNotesPlugin): string {
  */
 async function tmdbGet(path: string, plugin: WatchlistNotesPlugin, progress?: Progress): Promise<unknown> {
 	const key = tmdbKey(plugin);
-	if (!key) throw new MediaError('config', 'TMDB needs a key. Add one in Settings → Watchlist Notes → TMDB.');
+	if (!key) throw new MediaError('config', 'TMDB needs a key. Add one in Settings → Watchlist Notes Plus → TMDB.');
 	const token = isReadAccessToken(key);
 	const url = token ? `${API}${path}` : `${API}${path}${path.includes('?') ? '&' : '?'}api_key=${encodeURIComponent(key)}`;
 	const response = await httpRequest(url, {
@@ -115,7 +115,7 @@ export function tmdbError(response: RequestUrlResponse): MediaError {
 	if (response.status === 401 || code === 7) {
 		return new MediaError(
 			'auth',
-			'TMDB rejected the key. Check it in Settings → Watchlist Notes → TMDB (use the API Read Access Token or the API key from your TMDB account).',
+			'TMDB rejected the key. Check it in Settings → Watchlist Notes Plus → TMDB (use the API Read Access Token or the API key from your TMDB account).',
 		);
 	}
 	if (response.status === 404 || code === 34) return new MediaError('not-found', 'TMDB has no entry for this title.');

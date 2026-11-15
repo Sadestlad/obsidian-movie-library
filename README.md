@@ -1,3 +1,27 @@
+# Watchlist Notes Plus
+
+A fork of [Watchlist Notes](https://github.com/BurningBurrito/obsidian-movie-library) by BurningBurrito that adds **manga / manhwa** and **tracking**:
+
+- **Manga, manhwa, manhua, and light novels** from MyAnimeList (through Jikan, no key needed), in their own folder and table, with chapters, volumes, and authors.
+- **Status**: Planned, Watching (Reading for manga), Completed, On hold, or Dropped, in the `myStatus` property. Completed sets `watched` and the `finished` date.
+- **Progress**: add or remove one episode / chapter with a command (give it a hotkey). Counting up starts a planned title; reaching the last one asks whether to mark it completed. For manga that's still publishing there's no total, so it just counts.
+- **Rating**: rate from 1 to 10 with a command.
+- **Currently watching & reading**: a table at the top of the library note with everything in progress, most recently updated first.
+
+Its plugin ID is `watchlist-notes-plus`, so it doesn't clash with the original. Everything below is the original README, updated for these changes.
+
+| Command | What it does |
+| --- | --- |
+| **Create manga / manhwa note** | Search MyAnimeList for a manga, manhwa, manhua, or light novel and create its note. A MyAnimeList manga link works too. |
+| **Set status** | Pick Planned, Watching / Reading, Completed, On hold, or Dropped for the open note. |
+| **Add one episode / chapter** | Add 1 to `progress` (not for movies). |
+| **Remove one episode / chapter** | Take 1 off `progress`, for mistakes. |
+| **Rate** | Rate the open title from 1 to 10, or clear the rating. |
+
+Install it with [BRAT](https://github.com/TfTHacker/obsidian42-brat) (add `Sadestlad/obsidian-movie-library`), or manually: copy `main.js`, `manifest.json`, and `styles.css` from the latest release into `.obsidian/plugins/watchlist-notes-plus/`.
+
+---
+
 # Watchlist Notes
 
 Search for movies, TV shows, and anime, save each one as a note with its poster, and keep a library note with a table of everything you watch. TV shows and anime work without an API key.
@@ -388,7 +412,7 @@ This product uses TMDB and the TMDB APIs but is not endorsed, certified, or othe
 
 - Movie, TV show, and anime information and posters from [The Movie Database (TMDB)](https://www.themoviedb.org) when you use your TMDB key.
 - TV show information and posters from [TVmaze](https://www.tvmaze.com) (CC BY-SA).
-- Anime information and posters from [MyAnimeList](https://myanimelist.net), through [Tenrai](https://tenrai.org) and [Jikan](https://jikan.moe).
+- Anime information and posters from [MyAnimeList](https://myanimelist.net), through [Tenrai](https://tenrai.org) and [Jikan](https://jikan.moe). Manga information and posters from MyAnimeList through Jikan.
 - Movie and TV information from [OMDb](https://www.omdbapi.com) (CC BY-NC 4.0) when you use your OMDb key.
 - The library tables use [Dataview](https://github.com/blacksmithgu/obsidian-dataview) by Michael Brenan.
 - Built from [Library Notes](https://github.com/BurningBurrito/library-notes) (same author) and the [Obsidian sample plugin](https://github.com/obsidianmd/obsidian-sample-plugin).

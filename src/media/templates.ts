@@ -8,11 +8,16 @@ export const TEMPLATE_COPY_PATHS: Record<MediaType, string> = {
 	movie: 'Templates/Movie note.md',
 	tv: 'Templates/TV show note.md',
 	anime: 'Templates/Anime note.md',
+	manga: 'Templates/Manga note.md',
 };
 
-// The same in all three: your own properties, where the data came from, and the body.
-const SHARED_END = `watched: false
-rating: N/A
+// The same in all types: your own properties, where the data came from, and the body.
+// myStatus, progress, rating, and finished are set by the tracking commands (src/library/tracking.ts).
+// Movies have no progress (there's nothing to count).
+const sharedEnd = (type: MediaType) => `watched: false
+myStatus: Planned
+${type === 'movie' ? '' : 'progress: 0\n'}rating: N/A
+finished:
 owned: N/A
 streaming: N/A
 source: {{source}}
@@ -44,7 +49,7 @@ score: {{score}}
 description: {{description}}
 cover: {{coverUrl}}
 localCover: {{localCover}}
-${SHARED_END}`,
+${sharedEnd('movie')}`,
 
 	tv: `---
 tags:
@@ -64,7 +69,7 @@ score: {{score}}
 description: {{description}}
 cover: {{coverUrl}}
 localCover: {{localCover}}
-${SHARED_END}`,
+${sharedEnd('tv')}`,
 
 	anime: `---
 tags:
@@ -85,15 +90,37 @@ score: {{score}}
 description: {{description}}
 cover: {{coverUrl}}
 localCover: {{localCover}}
-${SHARED_END}`,
+${sharedEnd('anime')}`,
+
+	manga: `---
+tags:
+  - 📚Manga
+title: {{title}}
+englishTitle: {{englishTitle}}
+romajiTitle: {{romajiTitle}}
+japaneseTitle: {{japaneseTitle}}
+format: {{format}}
+year: {{year}}
+chapters: {{chapters}}
+volumes: {{volumes}}
+status: {{status}}
+firstPublished: {{firstPublished}}
+lastPublished: {{lastPublished}}
+author: {{author}}
+genre: {{genre}}
+score: {{score}}
+description: {{description}}
+cover: {{coverUrl}}
+localCover: {{localCover}}
+${sharedEnd('manga')}`,
 };
 
 /**
- * The title that names the note and fills {{title}}. For anime it follows the
+ * The title that names the note and fills {{title}}. For anime and manga it follows the
  * "Anime title" setting; English and Japanese fall back to romaji.
  */
 export function displayTitle(title: Title, animeTitle: AnimeTitle): string {
-	if (title.type !== 'anime') return title.title;
+	if (title.type !== 'anime' && title.type !== 'manga') return title.title;
 	const romaji = title.romajiTitle || title.title;
 	if (animeTitle === 'english') return title.englishTitle || romaji;
 	if (animeTitle === 'japanese') return title.japaneseTitle || romaji;
@@ -133,6 +160,11 @@ export function buildVariables(title: Title, context: NoteContext): TemplateVari
 		runtime: number(title.runtime),
 		seasons: number(title.seasons),
 		episodes: number(title.episodes),
+		chapters: number(title.chapters),
+		volumes: number(title.volumes),
+		author: title.creators,
+		firstPublished: title.firstAired,
+		lastPublished: title.lastAired,
 		format: title.format,
 		ageRating: title.ageRating,
 		season: title.season,

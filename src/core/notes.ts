@@ -109,7 +109,7 @@ export async function ensureFolder(app: App, folder: string): Promise<void> {
 		const existing = app.vault.getAbstractFileByPath(path);
 		if (existing instanceof TFolder) continue;
 		if (existing) {
-			throw new MediaError('config', `"${path}" is a file, not a folder. Choose another folder in the Watchlist Notes settings.`);
+			throw new MediaError('config', `"${path}" is a file, not a folder. Choose another folder in the Watchlist Notes Plus settings.`);
 		}
 		await app.vault.createFolder(path);
 	}

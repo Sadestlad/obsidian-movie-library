@@ -180,7 +180,7 @@ describe('creating a TV show note (recorded TVmaze answers)', () => {
 		await createTitleNote(plugin(), 'movie');
 		assert.equal(ui.searchOptions.length, 0, 'no search window');
 		assert.equal(ui.choices[0]?.title, 'Movie search needs a key');
-		assert.match(ui.choices[0]?.message ?? '', /needs a free TMDB or OMDb API key[\s\S]*TV shows and anime work without a key/);
+		assert.match(ui.choices[0]?.message ?? '', /needs a free TMDB or OMDb API key[\s\S]*TV shows, anime, and manga work without a key/);
 		assert.deepEqual(ui.choices[0]?.labels, ['How to get a key', 'Close'], 'no settings button where Obsidian can’t open settings');
 
 		const opened: string[] = [];
@@ -198,11 +198,13 @@ describe('creating a TV show note (recorded TVmaze answers)', () => {
 		assert.equal(app.files.get('Templates/TV show note.md'), 'my own');
 		assert.match(app.files.get('Templates/Movie note.md') as string, /^---\ntags:\n {2}- 🎬Movie\n/);
 		assert.match(app.files.get('Templates/Anime note.md') as string, /romajiTitle: \{\{romajiTitle\}\}/);
-		assert.deepEqual([p.settings.movieTemplate, p.settings.tvTemplate, p.settings.animeTemplate], [
+		assert.match(app.files.get('Templates/Manga note.md') as string, /chapters: \{\{chapters\}\}/);
+		assert.deepEqual([p.settings.movieTemplate, p.settings.tvTemplate, p.settings.animeTemplate, p.settings.mangaTemplate], [
 			'Templates/Movie note.md',
 			'Templates/TV show note.md',
 			'Templates/Anime note.md',
+			'Templates/Manga note.md',
 		]);
-		assert.match(message, /Created "Templates\/Movie note\.md", "Templates\/Anime note\.md"\. .*"Templates\/TV show note\.md" already existed and is now used\./);
+		assert.match(message, /Created "Templates\/Movie note\.md", "Templates\/Anime note\.md", "Templates\/Manga note\.md"\. .*"Templates\/TV show note\.md" already existed and is now used\./);
 	});
 });

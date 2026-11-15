@@ -38,7 +38,10 @@ export interface Title {
 	runtime: number | null;
 	seasons: number | null;
 	episodes: number | null;
-	/** Anime: TV, Movie, OVA, ONA, Special, TV Special. */
+	/** Manga: chapters and volumes (null while it's still publishing). */
+	chapters: number | null;
+	volumes: number | null;
+	/** Anime: TV, Movie, OVA, ONA, Special, TV Special. Manga: Manga, Manhwa, Manhua, Light Novel, One-shot… */
 	format: string;
 	/** Anime: e.g. "PG-13 - Teens 13 or older". */
 	ageRating: string;
@@ -85,6 +88,8 @@ export function emptyTitle(type: MediaType, source: Title['source']): Title {
 		runtime: null,
 		seasons: null,
 		episodes: null,
+		chapters: null,
+		volumes: null,
 		format: '',
 		ageRating: '',
 		season: '',
@@ -107,6 +112,8 @@ export interface SearchQuery {
 	imdbId: string | null;
 	/** From a MyAnimeList link. */
 	malId: number | null;
+	/** Whether that link is to an anime or a manga page. */
+	malKind: 'anime' | 'manga' | null;
 }
 
 /** One row in the search results list. */

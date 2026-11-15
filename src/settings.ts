@@ -16,7 +16,7 @@ import { tmdb } from './sources/tmdb';
 import { tvmaze } from './sources/tvmaze';
 import type { SourceId } from './sources/types';
 
-/** Which title names anime notes and the anime table. */
+/** Which title names anime and manga notes and their tables. */
 export type AnimeTitle = 'english' | 'romaji' | 'japanese';
 
 export interface WatchlistNotesSettings {
@@ -28,6 +28,8 @@ export interface WatchlistNotesSettings {
 	tvFolder: string;
 	/** Inside the library folder; anime series and films. */
 	animeFolder: string;
+	/** Inside the library folder; manga, manhwa, manhua, and light novels. */
+	mangaFolder: string;
 	/** Inside the library folder. */
 	postersFolder: string;
 	/** The overview note, without ".md". */
@@ -38,11 +40,13 @@ export interface WatchlistNotesSettings {
 	movieTemplate: string;
 	tvTemplate: string;
 	animeTemplate: string;
+	mangaTemplate: string;
 
 	/** Where searches go first, per type. */
 	movieSource: SourceId;
 	tvSource: SourceId;
 	animeSource: SourceId;
+	mangaSource: SourceId;
 	useFallback: boolean;
 	/** Leave out titles rated for adults (MyAnimeList's R+ and Rx; TMDB's adult flag). */
 	hideAdult: boolean;
@@ -60,6 +64,7 @@ export const DEFAULT_SETTINGS: WatchlistNotesSettings = {
 	moviesFolder: 'Movies',
 	tvFolder: 'TV Shows',
 	animeFolder: 'Anime',
+	mangaFolder: 'Manga',
 	postersFolder: 'Posters',
 	libraryNoteName: 'Watch Library MOC',
 	openAfterCreate: true,
@@ -67,10 +72,12 @@ export const DEFAULT_SETTINGS: WatchlistNotesSettings = {
 	movieTemplate: '',
 	tvTemplate: '',
 	animeTemplate: '',
+	mangaTemplate: '',
 
 	movieSource: 'tmdb',
 	tvSource: 'tvmaze',
 	animeSource: 'tenrai',
+	mangaSource: 'jikan',
 	useFallback: true,
 	hideAdult: true,
 	animeTitle: 'english',
@@ -85,6 +92,7 @@ export const TYPE_SETTINGS = {
 	movie: { template: 'movieTemplate', source: 'movieSource' },
 	tv: { template: 'tvTemplate', source: 'tvSource' },
 	anime: { template: 'animeTemplate', source: 'animeSource' },
+	manga: { template: 'mangaTemplate', source: 'mangaSource' },
 } as const satisfies Record<MediaType, { template: keyof WatchlistNotesSettings; source: keyof WatchlistNotesSettings }>;
 
 const ANIME_TITLES: Record<AnimeTitle, string> = { english: 'English', romaji: 'Romaji', japanese: 'Japanese' };
@@ -94,7 +102,7 @@ const LANGUAGE_CODE = /^[a-z]{2}$/;
 export const TMDB_NOTICE = 'This product uses TMDB and the TMDB APIs but is not endorsed, certified, or otherwise approved by TMDB.';
 
 // The folders inside the library folder; each needs its own.
-const FOLDER_KEYS = ['moviesFolder', 'tvFolder', 'animeFolder', 'postersFolder'] as const;
+const FOLDER_KEYS = ['moviesFolder', 'tvFolder', 'animeFolder', 'mangaFolder', 'postersFolder'] as const;
 type FolderKey = (typeof FOLDER_KEYS)[number];
 
 // Characters that can't be in a file or folder name, or that break links.
@@ -126,7 +134,7 @@ function folderProblem(value: string): string | undefined {
 
 /**
  * Why this folder can't be used next to the other folders, or undefined.
- * Movies, TV shows, anime, and posters need separate folders, or one table
+ * Movies, TV shows, anime, manga, and posters need separate folders, or one table
  * would list another type's notes.
  */
 export function folderClash(settings: WatchlistNotesSettings, key: FolderKey, value: string): string | undefined {
@@ -135,7 +143,7 @@ export function folderClash(settings: WatchlistNotesSettings, key: FolderKey, va
 		if (other === key) continue;
 		const theirs = normalizeFolder(settings[other]).toLowerCase();
 		if (mine === theirs || mine.startsWith(`${theirs}/`) || theirs.startsWith(`${mine}/`)) {
-			return 'Movies, TV shows, anime, and posters each need their own folder, not the same one or one inside another.';
+			return 'Movies, TV shows, anime, manga, and posters each need their own folder, not the same one or one inside another.';
 		}
 	}
 	return undefined;
@@ -194,7 +202,7 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 		return [
 			{
 				name: 'Library folder',
-				desc: 'Holds the library note and the movies, TV shows, anime, and posters folders. It can be inside another folder. Created if it doesn’t exist.',
+				desc: 'Holds the library note and the movies, TV shows, anime, manga, and posters folders. It can be inside another folder. Created if it doesn’t exist.',
 				control: {
 					type: 'folder',
 					key: 'libraryFolder',
@@ -205,6 +213,7 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 			this.folderItem('moviesFolder', 'Movies folder', 'Inside the library folder. One note per movie.'),
 			this.folderItem('tvFolder', 'TV shows folder', 'Inside the library folder. One note per TV show.'),
 			this.folderItem('animeFolder', 'Anime folder', 'Inside the library folder. One note per anime series or film.'),
+			this.folderItem('mangaFolder', 'Manga folder', 'Inside the library folder. One note per manga, manhwa, manhua, or light novel.'),
 			this.folderItem('postersFolder', 'Posters folder', 'Inside the library folder. Posters are saved here.'),
 			{
 				name: 'Open note after creating it',
@@ -230,7 +239,7 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 		return [
 			{
 				name: 'Library note name',
-				desc: 'The overview note in the library folder, with tables of your movies, TV shows, and anime. It’s created on first use and never overwritten.',
+				desc: 'The overview note in the library folder, with tables of your movies, TV shows, anime, and manga. It’s created on first use and never overwritten.',
 				control: {
 					type: 'text',
 					key: 'libraryNoteName',
@@ -273,6 +282,7 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 			fileItem('movie'),
 			fileItem('tv'),
 			fileItem('anime'),
+			fileItem('manga'),
 			{
 				name: 'Create editable templates',
 				desc: `Save the built-in templates to the "${TEMPLATE_COPY_PATHS.movie.split('/')[0]}" folder and use them, so you can change them. Existing files aren't overwritten.`,
@@ -309,12 +319,12 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 			},
 			{
 				name: 'Hide adult titles',
-				desc: 'Leaves titles rated for adults out of search results (MyAnimeList’s R+ and Rx ratings). A MyAnimeList link always finds its anime.',
+				desc: 'Leaves titles rated for adults out of search results (MyAnimeList’s R+ and Rx ratings). A MyAnimeList link always finds its title.',
 				control: { type: 'toggle', key: 'hideAdult' },
 			},
 			{
-				name: 'Anime title',
-				desc: 'Which title names anime notes and the anime table. English and Japanese fall back to the romaji title when there’s none. After changing it, regenerate the library note to update the table; existing note names don’t change.',
+				name: 'Anime and manga title',
+				desc: 'Which title names anime and manga notes and their tables. English and Japanese fall back to the romaji title when there’s none. After changing it, regenerate the library note to update the table; existing note names don’t change.',
 				control: { type: 'dropdown', key: 'animeTitle', options: ANIME_TITLES },
 			},
 			{

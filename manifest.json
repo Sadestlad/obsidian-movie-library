@@ -1,10 +1,10 @@
 {
-	"id": "watchlist-notes",
-	"name": "Watchlist Notes",
-	"version": "1.0.0",
+	"id": "watchlist-notes-plus",
+	"name": "Watchlist Notes Plus",
+	"version": "1.1.0",
 	"minAppVersion": "1.13.0",
-	"description": "Search for movies, TV shows, and anime, save each one as a note with its poster, and keep a library note with a table of everything you watch. TV shows and anime work without an API key.",
-	"author": "BurningBurrito",
-	"authorUrl": "https://github.com/BurningBurrito",
+	"description": "Track movies, TV shows, anime, and manga/manhwa as notes with posters: status, episode and chapter progress, ratings, and a library note with Dataview tables. Fork of Watchlist Notes.",
+	"author": "Sadestlad (fork of BurningBurrito's Watchlist Notes)",
+	"authorUrl": "https://github.com/Sadestlad",
 	"isDesktopOnly": false
 }

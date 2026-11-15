@@ -7,6 +7,9 @@ import type WatchlistNotesPlugin from '../main';
 import { MEDIA_HEADINGS, MEDIA_TYPES, MediaType } from '../media/types';
 import type { AnimeTitle, WatchlistNotesSettings } from '../settings';
 import { askChoice, Choice } from '../ui/choice-modal';
+import { STATUS } from './tracking';
+
+export const CURRENT_HEADING = 'Currently watching & reading';
 
 /** Notes with this class use the full pane width (see styles.css). */
 export const LIBRARY_NOTE_CLASS = 'watchlist-notes-moc';
@@ -33,16 +36,45 @@ const MIDDLE_COLUMNS: Record<MediaType, string[]> = {
 	movie: ['director AS Director'],
 	tv: ['creator AS Creator'],
 	anime: ['format AS Format', 'studio AS Studio'],
+	manga: ['format AS Type', 'author AS Author'],
 };
+
+/** The title expression: anime and manga follow the "Anime and manga title" setting, falling back to `title`. */
+function titleExpression(type: MediaType | 'any', animeTitle: AnimeTitle): string {
+	// default() takes two values, so fallbacks are nested.
+	return type === 'anime' || type === 'manga' || type === 'any'
+		? `default(${ANIME_TITLE_PROPERTY[animeTitle]}, default(title, file.name))`
+		: 'default(title, file.name)';
+}
+
+function quoteFolder(folder: string): string {
+	return `"${folder.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+/** Notes being watched or read right now, from every type's folder, most recently changed first. */
+export function currentQuery(folders: string[], animeTitle: AnimeTitle): string {
+	const title = titleExpression('any', animeTitle);
+	return [
+		'```dataview',
+		'TABLE WITHOUT ID',
+		`  ${POSTER_COLUMN},`,
+		`  ${title} AS Title,`,
+		// The type is the folder's name ("Anime", "Manga").
+		'  regexreplace(file.folder, "^.*/", "") AS Type,',
+		// "12 / 24" when the total is known, else just "12".
+		'  choice(chapters, string(progress) + " / " + string(chapters), choice(episodes, string(progress) + " / " + string(episodes), progress)) AS Progress,',
+		'  myStatus AS Status,',
+		'  file.link AS Note',
+		`FROM ${folders.map(quoteFolder).join(' OR ')}`,
+		`WHERE myStatus = "${STATUS.watching}" OR myStatus = "${STATUS.reading}"`,
+		'SORT file.mtime DESC',
+		'```',
+	].join('\n');
+}
 
 /** The Dataview query for one type's table, reading notes from that type's folder. */
 export function tableQuery(type: MediaType, folder: string, animeTitle: AnimeTitle): string {
-	// default() takes two values, so fallbacks are nested.
-	const title =
-		type === 'anime'
-			? `default(${ANIME_TITLE_PROPERTY[animeTitle]}, default(title, file.name))`
-			: 'default(title, file.name)';
-	const from = folder.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+	const title = titleExpression(type, animeTitle);
 	return [
 		'```dataview',
 		'TABLE WITHOUT ID',
@@ -52,22 +84,27 @@ export function tableQuery(type: MediaType, folder: string, animeTitle: AnimeTit
 		...MIDDLE_COLUMNS[type].map((column) => `  ${column},`),
 		'  genre AS Genre,',
 		'  file.link AS Note,',
+		'  myStatus AS Status,',
 		'  choice(watched, "🟩", "🟥") AS Watched,',
+		'  rating AS Rating,',
 		// Typed by hand, like Library Notes' AudioBook / EBook: 🟩, 🟥, or N/A; a service name for streaming.
 		'  owned AS Owned,',
-		'  streaming AS Streaming',
-		`FROM "${from}"`,
+		// For manga, `streaming` is where you read it (a site or app).
+		`  streaming AS ${type === 'manga' ? '"Read on"' : 'Streaming'}`,
+		`FROM ${quoteFolder(folder)}`,
 		`SORT ${title} ASC`,
 		'```',
 	].join('\n');
 }
 
-/** The three tables, each under its heading, between the markers. */
+/** "Currently watching & reading", then one table per type, each under its heading, between the markers. */
 export function generatedBlock(settings: WatchlistNotesSettings): string {
 	const { folders } = libraryPaths(settings);
+	const current = `## ${CURRENT_HEADING}\n\n${currentQuery(MEDIA_TYPES.map((type) => folders[type]), settings.animeTitle)}`;
 	const tables = MEDIA_TYPES.map(
 		(type) => `## ${MEDIA_HEADINGS[type]}\n\n${tableQuery(type, folders[type], settings.animeTitle)}`,
 	);
+	tables.unshift(current);
 	return `${START_LINE}\n${tables.join('\n\n')}\n${END_LINE}`;
 }
 

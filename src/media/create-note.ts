@@ -17,12 +17,13 @@ import { BUILT_IN_TEMPLATES, buildVariables, displayTitle } from './templates';
 import { MEDIA_WORDS, MediaType } from './types';
 
 /** README section on getting a key (see the README's headings). */
-export const KEY_HELP_URL = 'https://github.com/BurningBurrito/obsidian-movie-library#getting-a-tmdb-key';
+export const KEY_HELP_URL = 'https://github.com/Sadestlad/obsidian-movie-library#getting-a-tmdb-key';
 
 const PLACEHOLDERS: Record<MediaType, string> = {
 	movie: 'Title, Title (year), or IMDb ID',
 	tv: 'Title, Title (year), or IMDb ID',
 	anime: 'Title (English or romaji) or MyAnimeList link',
+	manga: 'Title (English or romaji) or MyAnimeList link',
 };
 
 /** Search → pick → (existing note?) → details → poster → note from the template. */
@@ -170,7 +171,7 @@ async function explainMissingSource(plugin: WatchlistNotesPlugin, type: MediaTyp
 	const choice = await askChoice(
 		app,
 		`${words.label} search needs a key`,
-		`${words.label} search needs a free TMDB or OMDb API key. Add one in Settings → Watchlist Notes.\n\nTV shows and anime work without a key.`,
+		`${words.label} search needs a free TMDB or OMDb API key. Add one in Settings → Watchlist Notes Plus.\n\nTV shows, anime, and manga work without a key.`,
 		[
 			...(canOpenSettings(app) ? [{ label: 'Open settings', value: 'settings' as const, cta: true }] : []),
 			{ label: 'How to get a key', value: 'help' as const },
@@ -188,7 +189,7 @@ function pickTitle(app: App, outcome: SearchOutcome): Promise<SearchResult | nul
 		placeholder: `${outcome.results.length} results from ${outcome.source.name}${outcome.fallback ? ` (instead of ${outcome.fallback.from})` : ''}. Type to filter.`,
 		emptyText: 'No result matches what you typed.',
 		matches: ({ title }, query) =>
-			[title.title, title.originalTitle, title.englishTitle, title.romajiTitle, title.japaneseTitle, title.network, ...title.studios].some(
+			[title.title, title.originalTitle, title.englishTitle, title.romajiTitle, title.japaneseTitle, title.network, ...title.studios, ...title.creators].some(
 				(text) => text.toLowerCase().includes(query),
 			),
 		render: ({ title, thumbnailUrl }, el) => {
@@ -203,7 +204,7 @@ function pickTitle(app: App, outcome: SearchOutcome): Promise<SearchResult | nul
 	});
 }
 
-/** The line under each result: movies "2010 · original title"; TV "2022 · Apple TV · Running"; anime "2023 · TV · 28 episodes · Madhouse". */
+/** The line under each result: movies "2010 · original title"; TV "2022 · Apple TV · Running"; anime "2023 · TV · 28 episodes · Madhouse"; manga "2018 · Manhwa · 200 chapters · Chugong". */
 export function resultDetails(title: Title): string {
 	const year = title.year ? String(title.year) : '';
 	const parts =
@@ -211,7 +212,9 @@ export function resultDetails(title: Title): string {
 			? [year, title.originalTitle !== title.title ? title.originalTitle : '']
 			: title.type === 'tv'
 				? [year, title.network, title.status]
-				: [year, title.format, title.episodes ? `${title.episodes} episode${title.episodes === 1 ? '' : 's'}` : '', title.studios[0] ?? ''];
+				: title.type === 'manga'
+					? [year, title.format, title.chapters ? `${title.chapters} chapter${title.chapters === 1 ? '' : 's'}` : title.status, title.creators[0] ?? '']
+					: [year, title.format, title.episodes ? `${title.episodes} episode${title.episodes === 1 ? '' : 's'}` : '', title.studios[0] ?? ''];
 	return parts.filter(Boolean).join(' · ');
 }
 

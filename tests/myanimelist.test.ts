@@ -3,9 +3,9 @@ import { before, beforeEach, describe, it } from 'node:test';
 import { clearCache, setUserAgent } from '../src/core/http';
 import type { WatchlistNotesSettings } from '../src/settings';
 import { parseQuery } from '../src/sources';
-import { cleanSynopsis, jikan, minutes, tenrai } from '../src/sources/myanimelist';
+import { cleanSynopsis, jikan, minutes, personName, tenrai } from '../src/sources/myanimelist';
 import { fake, json, requests, resetNetwork } from './support/network';
-import { jikanAnswer } from './support/titles';
+import { jikanAnswer, jikanMangaAnswer } from './support/titles';
 import { makeApp, makePlugin } from './support/vault';
 
 const plugin = (settings: Partial<WatchlistNotesSettings> = {}) => makePlugin(makeApp(), settings);
@@ -93,5 +93,56 @@ describe('anime from MyAnimeList (recorded Tenrai answers)', () => {
 		assert.equal(minutes('1 hr'), 60);
 		assert.equal(minutes('Unknown'), null);
 		assert.equal(cleanSynopsis('A story.\n\n(Source: Crunchyroll)\n\n[Written by MAL Rewrite]'), 'A story.\n\n(Source: Crunchyroll)');
+	});
+});
+
+describe('manga from MyAnimeList (hand-made Jikan answers)', () => {
+	beforeEach(() => {
+		clearCache();
+		resetNetwork();
+	});
+
+	it('searches Jikan’s manga list, leaves out doujinshi, and reads manhwa like manga', async () => {
+		fake('api.jikan.moe', json(200, jikanMangaAnswer()));
+		const results = await jikan.search(parseQuery('solo leveling'), 'manga', plugin());
+		assert.equal(requests[0]?.url, 'https://api.jikan.moe/v4/manga?q=solo+leveling&limit=20&sfw=true');
+		assert.deepEqual(results.map((r) => r.title.format), ['Manhwa', 'Manga'], 'no doujinshi');
+		const solo = results[0]?.title;
+		assert.ok(solo);
+		assert.equal(solo.type, 'manga');
+		assert.equal(solo.englishTitle, 'Solo Leveling');
+		assert.equal(solo.japaneseTitle, '나 혼자만 레벨업');
+		assert.equal(solo.chapters, 200);
+		assert.equal(solo.volumes, null);
+		assert.equal(solo.year, 2018);
+		assert.equal(solo.firstAired, '2018-03-04');
+		assert.deepEqual(solo.creators, ['Chugong', 'Sung-Rak Jang']);
+		assert.equal(solo.source.key, 'mal-manga-121496', 'not the same poster name as anime 121496');
+		assert.equal(solo.source.url, 'https://myanimelist.net/manga/121496/Na_Honjaman_Level_Up');
+		assert.doesNotMatch(solo.description, /Written by MAL Rewrite/);
+		const berserk = results[1]?.title;
+		assert.equal(berserk?.chapters, null, 'still publishing: no total');
+		assert.equal(berserk?.status, 'Publishing');
+	});
+
+	it('looks up a MyAnimeList manga link directly, and ignores an anime link in a manga search', async () => {
+		fake('api.jikan.moe/v4/manga/2/full', json(200, { data: jikanMangaAnswer().data[1] }));
+		const [berserk] = await jikan.search(parseQuery('https://myanimelist.net/manga/2/Berserk'), 'manga', plugin());
+		assert.equal(berserk?.title.title, 'Berserk');
+		assert.equal(requests.length, 1);
+		assert.deepEqual(await jikan.search(parseQuery('https://myanimelist.net/anime/52991/Sousou_no_Frieren'), 'manga', plugin()), []);
+		assert.deepEqual(await jikan.search(parseQuery('https://myanimelist.net/manga/2/Berserk'), 'anime', plugin()), []);
+		assert.equal(requests.length, 1, 'no request for a link to the other kind');
+	});
+
+	it('is Jikan only: Tenrai is for anime', () => {
+		assert.deepEqual(jikan.types, ['anime', 'manga']);
+		assert.deepEqual(tenrai.types, ['anime']);
+	});
+
+	it('turns "Last, First" names around', () => {
+		assert.equal(personName('Miura, Kentarou'), 'Kentarou Miura');
+		assert.equal(personName('Chugong'), 'Chugong');
+		assert.equal(personName('ONE'), 'ONE');
 	});
 });

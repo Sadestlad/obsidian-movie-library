@@ -9,7 +9,7 @@ import { makeApp, makePlugin } from './support/vault';
 const plugin = () => makePlugin(makeApp());
 
 describe('TVmaze (recorded answers)', () => {
-	before(() => setUserAgent('WatchlistNotes/test (+https://github.com/BurningBurrito/obsidian-movie-library)'));
+	before(() => setUserAgent('WatchlistNotes/test (+https://github.com/Sadestlad/obsidian-movie-library)'));
 	beforeEach(() => {
 		clearCache();
 		resetNetwork();
@@ -30,7 +30,7 @@ describe('TVmaze (recorded answers)', () => {
 		assert.equal(show.source.key, 'tvmaze-44933');
 		assert.equal(show.imdbId, 'tt11280740');
 		assert.doesNotMatch(show.description, /<\/?p>/, 'HTML removed');
-		assert.match(requests[0]?.headers['User-Agent'] ?? '', /^WatchlistNotes\/test \(\+https:\/\/github\.com\/BurningBurrito\/obsidian-movie-library\)$/);
+		assert.match(requests[0]?.headers['User-Agent'] ?? '', /^WatchlistNotes\/test \(\+https:\/\/github\.com\/Sadestlad\/obsidian-movie-library\)$/);
 	});
 
 	it('fills in creators, cast, seasons, and episodes from one request', async () => {

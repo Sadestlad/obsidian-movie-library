@@ -6,7 +6,7 @@ import type { WatchlistNotesSettings } from '../src/settings';
 import { forgetFailures } from '../src/sources';
 import { notices } from './support/obsidian';
 import { fake, json, resetNetwork } from './support/network';
-import { jikanAnswer } from './support/titles';
+import { jikanAnswer, jikanMangaAnswer } from './support/titles';
 import { resetUi, ui, userPicks, userSearches } from './support/ui';
 import { frontmatter, makeApp, makePlugin, TestApp } from './support/vault';
 
@@ -112,5 +112,38 @@ describe('creating an anime note (recorded Tenrai answers)', () => {
 		userSearches('qwxzzvbnmlkj');
 		await createTitleNote(plugin({ useFallback: false }), 'anime');
 		assert.equal(ui.searchErrors[0], 'No anime found for "qwxzzvbnmlkj". Try fewer words, the romaji title, or the MyAnimeList link.');
+	});
+});
+
+describe('creating a manga note (hand-made Jikan answers)', () => {
+	beforeEach(() => {
+		clearCache();
+		forgetFailures();
+		resetNetwork();
+		resetUi();
+		notices.length = 0;
+		app = makeApp();
+	});
+
+	it('creates a manhwa note in the manga folder with chapters, authors, tracking properties, and a poster', async () => {
+		fake('api.jikan.moe', json(200, jikanMangaAnswer()));
+		// A JPEG header plus padding, big enough to count as a real poster.
+		const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(4096)]).toString('base64');
+		fake('cdn.myanimelist.net', { status: 200, headers: { 'content-type': 'image/jpeg' }, base64: jpeg });
+		userSearches('solo leveling');
+		userPicks(0);
+		await createTitleNote(plugin(), 'manga');
+
+		const p = frontmatter(app, 'Watch Library/Manga/Solo Leveling.md');
+		assert.deepEqual(p.tags, ['📚Manga']);
+		assert.equal(p.format, 'Manhwa');
+		assert.equal(p.chapters, 200);
+		assert.deepEqual(p.author, ['Chugong', 'Sung-Rak Jang']);
+		assert.equal(p.myStatus, 'Planned');
+		assert.equal(p.progress, 0);
+		assert.equal(p.source, 'Jikan');
+		assert.equal(p.sourceUrl, 'https://myanimelist.net/manga/121496/Na_Honjaman_Level_Up');
+		assert.deepEqual(filesIn('Watch Library/Posters'), ['Watch Library/Posters/Solo Leveling (2018) - mal-manga-121496.jpg']);
+		assert.match(app.files.get('Watch Library/Watch Library MOC.md') as string, /## Manga & manhwa/);
 	});
 });

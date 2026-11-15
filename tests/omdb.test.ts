@@ -79,7 +79,7 @@ describe('OMDb (stand-in answers in its documented format)', () => {
 		fake('s=a', omdbAnswers.error('Too many results.'));
 		await assert.rejects(omdb.search(parseQuery('a'), 'movie', plugin()), /OMDb found too many results\. Try more words\./);
 		fake('s=x', omdbAnswers.error('Invalid API key!', 401));
-		await assert.rejects(omdb.search(parseQuery('x'), 'movie', plugin()), /OMDb rejected the key\. Check it in Settings → Watchlist Notes → OMDb\./);
+		await assert.rejects(omdb.search(parseQuery('x'), 'movie', plugin()), /OMDb rejected the key\. Check it in Settings → Watchlist Notes Plus → OMDb\./);
 		fake('s=y', omdbAnswers.error('Request limit reached!', 401));
 		await assert.rejects(omdb.search(parseQuery('y'), 'movie', plugin()), /Your OMDb key has used up today's 1,000 requests\. Try again tomorrow/);
 		await assert.rejects(omdb.search(parseQuery('z'), 'movie', plugin(null)), /OMDb needs a key/);

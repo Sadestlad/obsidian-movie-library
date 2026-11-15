@@ -115,10 +115,10 @@ describe('TMDB (stand-in answers in its documented format)', () => {
 	});
 
 	it('explains a missing or rejected key, and a title TMDB doesn’t have', async () => {
-		await assert.rejects(tmdb.search(parseQuery('inception'), 'movie', plugin(null)), /TMDB needs a key\. Add one in Settings → Watchlist Notes → TMDB\./);
+		await assert.rejects(tmdb.search(parseQuery('inception'), 'movie', plugin(null)), /TMDB needs a key\. Add one in Settings → Watchlist Notes Plus → TMDB\./);
 		assert.equal(requests.length, 0, 'no request without a key');
 		fake('/search/movie', tmdbAnswers.invalidKey());
-		await assert.rejects(tmdb.search(parseQuery('inception'), 'movie', plugin()), /TMDB rejected the key\. Check it in Settings → Watchlist Notes → TMDB/);
+		await assert.rejects(tmdb.search(parseQuery('inception'), 'movie', plugin()), /TMDB rejected the key\. Check it in Settings → Watchlist Notes Plus → TMDB/);
 		fake('/movie/999', tmdbAnswers.notFound());
 		await assert.rejects(tmdb.details({ title: { type: 'movie' } as never, thumbnailUrl: '', ref: { id: '999', kind: 'movie' } }, plugin()), /TMDB has no entry for this title/);
 	});

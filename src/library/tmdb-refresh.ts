@@ -68,6 +68,8 @@ const REFRESHED: Record<MediaType, Record<string, string>> = {
 		description: 'description',
 		cover: 'coverUrl',
 	},
+	// Manga never comes from TMDB.
+	manga: {},
 };
 
 export interface TmdbNote {
@@ -170,7 +172,7 @@ export async function refreshTmdbNotes(plugin: WatchlistNotesPlugin): Promise<vo
 		return;
 	}
 	if (!tmdb.isConfigured(plugin)) {
-		new Notice(`Refreshing needs your ${tmdb.name} key. Add it in Settings → Watchlist Notes → ${tmdb.name}.`, 10_000);
+		new Notice(`Refreshing needs your ${tmdb.name} key. Add it in Settings → Watchlist Notes Plus → ${tmdb.name}.`, 10_000);
 		return;
 	}
 
