@@ -27,7 +27,13 @@ describe('settings', () => {
 			language: 'en',
 			tmdbKeySecret: '',
 			omdbKeySecret: '',
+			settingsVersion: 2,
 		});
+	});
+
+	it('moves manga searches from the old Jikan default to AniList once, and keeps a later choice', () => {
+		assert.equal(sanitizeSettings({ mangaSource: 'jikan' }).mangaSource, 'anilist', 'saved by 1.1.0');
+		assert.equal(sanitizeSettings({ mangaSource: 'jikan', settingsVersion: 2 }).mangaSource, 'jikan', 'chosen later');
 	});
 
 	it('repairs a default source that doesn’t exist or doesn’t cover that type', () => {

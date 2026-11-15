@@ -38,7 +38,7 @@ describe('built-in templates', () => {
 		assert.equal(p.source, 'TMDB');
 		assert.equal(p.created, '2026-10-06 12:00:00');
 		assert.deepEqual(p.link, ['[[Watch Library MOC]]']);
-		assert.match(note, /---\n# Summary:\n\n# Notes:\n\n# Quotes:\n$/);
+		assert.match(note, /---\n!\[\[Watch Library\/Posters\/Inception \(2010\) - tmdb-movie-27205\.jpg\|220\]\]\n# Summary:\n\n# Notes:\n\n# Quotes:\n$/, 'the poster at the top of the body');
 	});
 
 	it('TV show: the agreed properties', () => {

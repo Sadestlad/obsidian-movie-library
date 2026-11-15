@@ -1,6 +1,8 @@
 import { Menu, Notice, Plugin, TFile } from 'obsidian';
 import { toMediaError } from './core/errors';
 import { clearCache, setUserAgent } from './core/http';
+import { addCoversToNotes } from './library/covers';
+import { createGallery } from './library/gallery';
 import { regenerateLibraryNote } from './library/moc';
 import { refreshTmdbNotes, remindIfDue } from './library/tmdb-refresh';
 import {
@@ -81,6 +83,16 @@ export default class WatchlistNotesPlugin extends Plugin {
 			id: 'rate-title',
 			name: 'Rate',
 			checkCallback: (checking) => this.onWatchNote(checking, (file) => this.rate(file)),
+		});
+		this.addCommand({
+			id: 'create-poster-gallery',
+			name: 'Open poster gallery',
+			callback: () => this.run(() => createGallery(this)),
+		});
+		this.addCommand({
+			id: 'add-covers-to-notes',
+			name: 'Add covers to existing notes',
+			callback: () => this.run(() => addCoversToNotes(this)),
 		});
 		this.addCommand({
 			id: 'regenerate-watch-library',

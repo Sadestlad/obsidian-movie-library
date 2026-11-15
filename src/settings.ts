@@ -4,6 +4,8 @@ import { dataviewMessage, dataviewStatus } from './core/dataview';
 import { toMediaError } from './core/errors';
 import { ensureFolder, normalizeFolder } from './core/notes';
 import { libraryPaths } from './core/paths';
+import { addCoversToNotes } from './library/covers';
+import { createGallery, GALLERY_NAME } from './library/gallery';
 import { regenerateLibraryNote } from './library/moc';
 import { refreshStatus, refreshTmdbNotes } from './library/tmdb-refresh';
 import type WatchlistNotesPlugin from './main';
@@ -58,7 +60,13 @@ export interface WatchlistNotesSettings {
 	/** Names of the secrets in Obsidian's keychain that hold the keys (not the keys themselves). */
 	tmdbKeySecret: string;
 	omdbKeySecret: string;
+
+	/** Which version of these settings was saved, for one-time fixes when defaults change. */
+	settingsVersion: number;
 }
+
+/** Bumped when a saved setting needs a one-time fix (see sanitizeSettings). */
+export const SETTINGS_VERSION = 2;
 
 export const DEFAULT_SETTINGS: WatchlistNotesSettings = {
 	libraryFolder: 'Watch Library',
@@ -86,6 +94,8 @@ export const DEFAULT_SETTINGS: WatchlistNotesSettings = {
 
 	tmdbKeySecret: '',
 	omdbKeySecret: '',
+
+	settingsVersion: SETTINGS_VERSION,
 };
 
 /** The settings that belong to each type. */
@@ -112,6 +122,9 @@ const BAD_NAME_CHARS = /[\\:*?"<>|#^[\]]/;
 /** Merge saved data with defaults and repair values the settings page would reject. */
 export function sanitizeSettings(saved: Partial<WatchlistNotesSettings> | null): WatchlistNotesSettings {
 	const settings = Object.assign({}, DEFAULT_SETTINGS, saved);
+	// 1.1.0 saved Jikan as the manga default; it's often down, so move to AniList (still the user's choice later).
+	if (saved && (saved.settingsVersion ?? 1) < 2 && saved.mangaSource === 'jikan') settings.mangaSource = 'anilist';
+	settings.settingsVersion = SETTINGS_VERSION;
 	for (const key of [...FOLDER_KEYS, 'libraryNoteName'] as const) {
 		if (folderProblem(settings[key])) settings[key] = DEFAULT_SETTINGS[key];
 	}
@@ -264,6 +277,16 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 				name: 'Regenerate library note',
 				desc: 'Rebuild the tables from the current settings, or add them to a library note you made yourself. You confirm first; nothing else in the note changes.',
 				action: () => void this.run(() => regenerateLibraryNote(this.plugin)),
+			},
+			{
+				name: 'Poster gallery',
+				desc: `A grid of posters, like a media server, in "${GALLERY_NAME}.base" in the library folder. Uses Obsidian’s Bases (Settings → Core plugins). Created with the library note; this opens it, or creates it if it’s missing.`,
+				action: () => void this.run(() => createGallery(this.plugin)),
+			},
+			{
+				name: 'Add covers to existing notes',
+				desc: 'New notes show their poster at the top. This adds it to notes made before that. You confirm first.',
+				action: () => void this.run(() => addCoversToNotes(this.plugin)),
 			},
 		];
 	}

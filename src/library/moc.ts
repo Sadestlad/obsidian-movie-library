@@ -7,6 +7,7 @@ import type WatchlistNotesPlugin from '../main';
 import { MEDIA_HEADINGS, MEDIA_TYPES, MediaType } from '../media/types';
 import type { AnimeTitle, WatchlistNotesSettings } from '../settings';
 import { askChoice, Choice } from '../ui/choice-modal';
+import { GALLERY_NAME, galleryBase, galleryPath } from './gallery';
 import { STATUS } from './tracking';
 
 export const CURRENT_HEADING = 'Currently watching & reading';
@@ -109,7 +110,7 @@ export function generatedBlock(settings: WatchlistNotesSettings): string {
 }
 
 export function newLibraryNote(settings: WatchlistNotesSettings): string {
-	return `---\ncssclasses:\n  - ${LIBRARY_NOTE_CLASS}\n---\n# Watch Library\n\n${generatedBlock(settings)}\n`;
+	return `---\ncssclasses:\n  - ${LIBRARY_NOTE_CLASS}\n---\n# Watch Library\n\n[[${GALLERY_NAME}.base|🖼️ Poster gallery]]\n\n${generatedBlock(settings)}\n`;
 }
 
 export type RegenerationPlan =
@@ -180,6 +181,9 @@ export async function ensureLibraryNote(plugin: WatchlistNotesPlugin): Promise<T
 	await ensureFolder(app, paths.root);
 	const file = await app.vault.create(paths.libraryNote, newLibraryNote(plugin.settings));
 	new Notice(`Created the library note "${paths.libraryNote}".`);
+	// The poster gallery comes with it; one that exists is never touched.
+	const gallery = galleryPath(plugin.settings);
+	if (!app.vault.getAbstractFileByPath(gallery)) await app.vault.create(gallery, galleryBase(plugin.settings));
 	warnIfNoDataview(plugin);
 	return file;
 }

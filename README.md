@@ -7,6 +7,8 @@ A fork of [Watchlist Notes](https://github.com/BurningBurrito/obsidian-movie-lib
 - **Progress**: add or remove one episode / chapter with a command (give it a hotkey). Counting up starts a planned title; reaching the last one asks whether to mark it completed. For manga that's still publishing there's no total, so it just counts.
 - **Rating**: rate from 1 to 10 with a command.
 - **Currently watching & reading**: a table at the top of the library note with everything in progress, most recently updated first.
+- **Covers**: new notes show their poster at the top, and **Add covers to existing notes** adds it to older ones.
+- **Poster gallery**: a grid of covers, like a media server, made with Obsidian's built-in Bases (`Watch Library Gallery.base`), with tabs for Watching & reading, Planned, Completed, Everything, and each type. Status and rating can be edited on the cards. Needs Bases turned on in **Settings → Core plugins**.
 
 Its plugin ID is `watchlist-notes-plus`, so it doesn't clash with the original. Everything below is the original README, updated for these changes.
 
@@ -17,6 +19,8 @@ Its plugin ID is `watchlist-notes-plus`, so it doesn't clash with the original. 
 | **Add one episode / chapter** | Add 1 to `progress` (not for movies). |
 | **Remove one episode / chapter** | Take 1 off `progress`, for mistakes. |
 | **Rate** | Rate the open title from 1 to 10, or clear the rating. |
+| **Open poster gallery** | Open the poster grid, or create it if it's missing. |
+| **Add covers to existing notes** | Put the poster at the top of notes made before covers were added. You confirm first. |
 
 Install it with [BRAT](https://github.com/TfTHacker/obsidian42-brat) (add `Sadestlad/obsidian-movie-library`), or manually: copy `main.js`, `manifest.json`, and `styles.css` from the latest release into `.obsidian/plugins/watchlist-notes-plus/`.
 

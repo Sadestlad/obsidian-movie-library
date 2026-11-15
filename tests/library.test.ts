@@ -240,3 +240,87 @@ describe('watched status', () => {
 		assert.match(app.files.get(file.path) as string, /My notes\.\n$/);
 	});
 });
+
+describe('covers in notes', async () => {
+	const { addCoversToNotes, hasCoverEmbed, posterPathOf, withCoverEmbed } = await import('../src/library/covers');
+	const { makePlugin: plugin } = await import('./support/vault');
+
+	it('reads every form of localCover', () => {
+		assert.equal(posterPathOf('[[Watch Library/Posters/A.jpg]]'), 'Watch Library/Posters/A.jpg');
+		assert.equal(posterPathOf('![[Posters/A.jpg|x]]'), 'Posters/A.jpg');
+		assert.equal(posterPathOf('/Posters/A.jpg'), 'Posters/A.jpg');
+		assert.equal(posterPathOf(null), '');
+	});
+
+	it('adds the poster right under the properties, once', () => {
+		const note = '---\ntitle: A\n---\n# Summary:\n';
+		const added = withCoverEmbed(note, 'P/A.jpg');
+		assert.equal(added, '---\ntitle: A\n---\n![[P/A.jpg|220]]\n# Summary:\n');
+		assert.ok(hasCoverEmbed(added, 'P/A.jpg'));
+		assert.ok(!hasCoverEmbed(note, 'P/A.jpg'));
+		assert.ok(hasCoverEmbed('---\nx: 1\n---\n![[A.jpg]]\n', 'P/A.jpg'), 'an embed by file name counts');
+		assert.ok(!hasCoverEmbed('---\nlocalCover: "![[P/A.jpg]]"\n---\nbody\n', 'P/A.jpg'), 'the property itself is not an embed in the body');
+	});
+
+	it('adds covers to existing notes after asking, and skips notes that have one or have no poster', async () => {
+		resetUi();
+		notices.length = 0;
+		const app = makeApp();
+		app.vault.put('Watch Library/Anime/A.md', '---\nlocalCover: "[[Watch Library/Posters/A.jpg]]"\n---\n# Summary:\n');
+		app.vault.put('Watch Library/Anime/B.md', '---\nlocalCover: "[[Watch Library/Posters/B.jpg]]"\n---\n![[Watch Library/Posters/B.jpg|220]]\n');
+		app.vault.put('Watch Library/Anime/C.md', '---\nlocalCover:\n---\n');
+		app.vault.put('Other/D.md', '---\nlocalCover: "[[x.jpg]]"\n---\n');
+		userChooses('Add to 1 note');
+		await addCoversToNotes(plugin(app));
+		assert.equal(app.files.get('Watch Library/Anime/A.md'), '---\nlocalCover: "[[Watch Library/Posters/A.jpg]]"\n---\n![[Watch Library/Posters/A.jpg|220]]\n# Summary:\n');
+		assert.equal(app.files.get('Other/D.md'), '---\nlocalCover: "[[x.jpg]]"\n---\n', 'outside the library');
+		assert.ok(notices.includes('Added the cover to 1 note.'));
+	});
+});
+
+describe('poster gallery', async () => {
+	const { parse } = await import('yaml');
+	const { galleryBase, createGallery } = await import('../src/library/gallery');
+	const { makePlugin: plugin } = await import('./support/vault');
+
+	it('is valid YAML with poster cards for in-progress, planned, completed, everything, and each type', () => {
+		const base = parse(galleryBase(settings(nested))) as {
+			filters: { and: unknown[] };
+			views: { type: string; name: string; image: string; imageAspectRatio: number; filters?: { and: string[] } }[];
+			formulas: Record<string, string>;
+		};
+		assert.deepEqual(base.views.map((v) => v.name), ['Watching & reading', 'Planned', 'Completed', 'Everything', 'Movies', 'TV shows', 'Anime', 'Manga & manhwa']);
+		assert.ok(base.views.every((v) => v.type === 'cards' && v.image === 'note.localCover' && v.imageAspectRatio === 1.5));
+		assert.deepEqual(base.views[0]?.filters?.and, ['myStatus == "Watching" || myStatus == "Reading"']);
+		assert.deepEqual(base.filters.and[1], {
+			or: [
+				'file.inFolder("Synced Notes/Watch Library/Movies")',
+				'file.inFolder("Synced Notes/Watch Library/TV Shows")',
+				'file.inFolder("Synced Notes/Watch Library/Anime")',
+				'file.inFolder("Synced Notes/Watch Library/Manga")',
+			],
+		});
+		assert.match(base.formulas.progress_text ?? '', /note\.chapters\.toString\(\)/);
+	});
+
+	it('quotes odd folder names safely', () => {
+		const base = parse(galleryBase(settings({ animeFolder: `Ani'me "x"` }))) as { filters: { and: [unknown, { or: string[] }] } };
+		assert.equal(base.filters.and[1].or[2], String.raw`file.inFolder("Watch Library/Ani'me \"x\"")`);
+	});
+
+	it('is created with the library note, linked from it, and never replaced without asking', async () => {
+		resetUi();
+		const app = makeApp();
+		const p = plugin(app);
+		await ensureLibraryNote(p);
+		assert.match(app.files.get('Watch Library/Watch Library MOC.md') as string, /\[\[Watch Library Gallery\.base\|🖼️ Poster gallery\]\]/);
+		app.files.set('Watch Library/Watch Library Gallery.base', 'my edits');
+		userChooses('Open it');
+		await createGallery(p);
+		assert.equal(app.files.get('Watch Library/Watch Library Gallery.base'), 'my edits');
+		assert.deepEqual(app.workspace.opened, ['Watch Library/Watch Library Gallery.base']);
+		userChooses('Replace');
+		await createGallery(p);
+		assert.match(app.files.get('Watch Library/Watch Library Gallery.base') as string, /type: cards/);
+	});
+});

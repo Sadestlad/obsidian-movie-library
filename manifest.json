@@ -1,7 +1,7 @@
 {
 	"id": "watchlist-notes-plus",
 	"name": "Watchlist Notes Plus",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"minAppVersion": "1.13.0",
 	"description": "Track movies, TV shows, anime, and manga/manhwa as notes with posters: status, episode and chapter progress, ratings, and a library note with Dataview tables. Fork of Watchlist Notes.",
 	"author": "Sadestlad (fork of BurningBurrito's Watchlist Notes)",

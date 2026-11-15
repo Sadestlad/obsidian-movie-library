@@ -26,6 +26,7 @@ created: {{date:YYYY-MM-DD HH:mm:ss}}
 link:
   - {{libraryLink}}
 ---
+{{coverEmbed}}
 # Summary:
 
 # Notes:
@@ -176,8 +177,18 @@ export function buildVariables(title: Title, context: NoteContext): TemplateVari
 		// A link (not a plain path) so Obsidian keeps it up to date if the image is renamed or moved.
 		localCover: posterPath ? `[[${posterPath}]]` : '',
 		localCoverPath: posterPath,
+		// The poster shown at the top of the note body, like a media server's detail page.
+		coverEmbed: posterPath ? coverEmbed(posterPath) : '',
 		source: title.source.name,
 		sourceUrl: title.source.url,
 		libraryLink: `[[${context.libraryNoteName}]]`,
 	};
+}
+
+/** Width of the poster at the top of a note, in pixels. */
+export const COVER_WIDTH = 220;
+
+/** The poster embed at the top of a note's body. */
+export function coverEmbed(posterPath: string): string {
+	return `![[${posterPath}|${COVER_WIDTH}]]`;
 }

@@ -81,6 +81,11 @@ function makeVault(files: Map<string, string | ArrayBuffer>) {
 			files.set(file.path, data);
 			return Promise.resolve();
 		},
+		modify: (file: TFile, data: string) => {
+			files.set(file.path, data);
+			return Promise.resolve();
+		},
+		getMarkdownFiles: () => [...entries.values()].filter((entry): entry is TFile => entry instanceof TFile && entry.extension === 'md'),
 		read: (file: TFile) => Promise.resolve(files.get(file.path) as string),
 		cachedRead: (file: TFile) => Promise.resolve(files.get(file.path) as string),
 		process: (file: TFile, fn: (data: string) => string) => {
