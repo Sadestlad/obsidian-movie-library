@@ -10,7 +10,7 @@ import { emptyTitle, MediaSource, SearchQuery, SearchResult, Title } from './typ
 // Anime from MyAnimeList, through two free APIs that answer in the same (Jikan v4) format:
 // Tenrai (default, https://tenrai.org) and Jikan (backup, https://jikan.moe). Neither needs an
 // account. Each note links to the anime's MyAnimeList page.
-// Manga (and manhwa, manhua, light novels) come from Jikan only: Tenrai is used for anime alone.
+// Jikan is also the backup manga source, after AniList (sources/anilist.ts). Tenrai is used for anime alone.
 
 /** The site the anime information comes from (for credits and messages). */
 export const MYANIMELIST = 'MyAnimeList';

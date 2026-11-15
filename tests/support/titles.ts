@@ -160,3 +160,57 @@ export function jikanMangaAnswer() {
 		],
 	};
 }
+
+/** An AniList GraphQL answer: a manhwa and a Japanese manga still publishing. Hand-made, in AniList's shape. */
+export function anilistAnswer() {
+	return {
+		data: {
+			Page: {
+				media: [
+					{
+						id: 105398,
+						idMal: 121496,
+						siteUrl: 'https://anilist.co/manga/105398',
+						title: { romaji: 'Na Honjaman Level Up', english: 'Solo Leveling', native: '나 혼자만 레벨업' },
+						format: 'MANGA',
+						status: 'FINISHED',
+						chapters: 201,
+						volumes: 14,
+						countryOfOrigin: 'KR',
+						startDate: { year: 2018, month: 3, day: 4 },
+						endDate: { year: 2021, month: 12, day: 29 },
+						genres: ['Action', 'Adventure', 'Fantasy'],
+						averageScore: 86,
+						description: 'E-rank hunter Jinwoo Sung levels up alone.<br><br>(Source: Webtoon)',
+						coverImage: { extraLarge: 'https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/solo.jpg', medium: 'https://s4.anilist.co/file/anilistcdn/media/manga/cover/small/solo.jpg' },
+						staff: {
+							edges: [
+								{ role: 'Original Story', node: { name: { full: 'Chugong' } } },
+								{ role: 'Art', node: { name: { full: 'Sung-Lak Jang' } } },
+								{ role: 'Translator (English)', node: { name: { full: 'Someone Else' } } },
+							],
+						},
+					},
+					{
+						id: 30002,
+						idMal: 2,
+						siteUrl: 'https://anilist.co/manga/30002',
+						title: { romaji: 'Berserk', english: 'Berserk', native: 'ベルセルク' },
+						format: 'MANGA',
+						status: 'RELEASING',
+						chapters: null,
+						volumes: null,
+						countryOfOrigin: 'JP',
+						startDate: { year: 1989, month: 8, day: 25 },
+						endDate: { year: null, month: null, day: null },
+						genres: ['Action', 'Sci-Fi'],
+						averageScore: 93,
+						description: 'Guts is out for revenge.',
+						coverImage: { large: 'https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/berserk.jpg' },
+						staff: { edges: [{ role: 'Story & Art', node: { name: { full: 'Kentarou Miura' } } }] },
+					},
+				],
+			},
+		},
+	};
+}

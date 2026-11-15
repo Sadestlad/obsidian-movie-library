@@ -3,7 +3,7 @@ import type { ThrottleRule } from '../core/throttle';
 import type WatchlistNotesPlugin from '../main';
 import type { MediaType } from '../media/types';
 
-export type SourceId = 'tmdb' | 'omdb' | 'tvmaze' | 'tenrai' | 'jikan';
+export type SourceId = 'tmdb' | 'omdb' | 'tvmaze' | 'tenrai' | 'jikan' | 'anilist';
 
 /**
  * Everything a source knows about one movie, TV show, or anime, in one shape

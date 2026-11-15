@@ -6,7 +6,7 @@ import type { WatchlistNotesSettings } from '../src/settings';
 import { forgetFailures } from '../src/sources';
 import { notices } from './support/obsidian';
 import { fake, json, resetNetwork } from './support/network';
-import { jikanAnswer, jikanMangaAnswer } from './support/titles';
+import { anilistAnswer, jikanAnswer, jikanMangaAnswer } from './support/titles';
 import { resetUi, ui, userPicks, userSearches } from './support/ui';
 import { frontmatter, makeApp, makePlugin, TestApp } from './support/vault';
 
@@ -115,7 +115,7 @@ describe('creating an anime note (recorded Tenrai answers)', () => {
 	});
 });
 
-describe('creating a manga note (hand-made Jikan answers)', () => {
+describe('creating a manga note (hand-made AniList and Jikan answers)', () => {
 	beforeEach(() => {
 		clearCache();
 		forgetFailures();
@@ -125,7 +125,30 @@ describe('creating a manga note (hand-made Jikan answers)', () => {
 		app = makeApp();
 	});
 
-	it('creates a manhwa note in the manga folder with chapters, authors, tracking properties, and a poster', async () => {
+	it('searches AniList first and creates a manhwa note with chapters, authors, tracking properties, and a poster', async () => {
+		fake('graphql.anilist.co', json(200, anilistAnswer()));
+		const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(4096)]).toString('base64');
+		fake('s4.anilist.co', { status: 200, headers: { 'content-type': 'image/jpeg' }, base64: jpeg });
+		userSearches('solo leveling');
+		userPicks(0);
+		await createTitleNote(plugin(), 'manga');
+
+		const p = frontmatter(app, 'Watch Library/Manga/Solo Leveling.md');
+		assert.deepEqual(p.tags, ['📚Manga']);
+		assert.equal(p.format, 'Manhwa');
+		assert.equal(p.chapters, 201);
+		assert.equal(p.volumes, 14);
+		assert.deepEqual(p.author, ['Chugong', 'Sung-Lak Jang'], 'no translators');
+		assert.equal(p.status, 'Finished');
+		assert.equal(p.score, 8.6);
+		assert.equal(p.myStatus, 'Planned');
+		assert.equal(p.source, 'AniList');
+		assert.equal(p.sourceUrl, 'https://anilist.co/manga/105398');
+		assert.deepEqual(filesIn('Watch Library/Posters'), ['Watch Library/Posters/Solo Leveling (2018) - anilist-105398.jpg']);
+	});
+
+	it('falls back to Jikan when AniList is down, and says so', async () => {
+		fake('graphql.anilist.co', json(503, {}));
 		fake('api.jikan.moe', json(200, jikanMangaAnswer()));
 		// A JPEG header plus padding, big enough to count as a real poster.
 		const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(4096)]).toString('base64');
@@ -145,5 +168,6 @@ describe('creating a manga note (hand-made Jikan answers)', () => {
 		assert.equal(p.sourceUrl, 'https://myanimelist.net/manga/121496/Na_Honjaman_Level_Up');
 		assert.deepEqual(filesIn('Watch Library/Posters'), ['Watch Library/Posters/Solo Leveling (2018) - mal-manga-121496.jpg']);
 		assert.match(app.files.get('Watch Library/Watch Library MOC.md') as string, /## Manga & manhwa/);
+		assert.ok(notices.some((n) => n.includes('Showing results from Jikan instead.')), notices.join(' / '));
 	});
 });

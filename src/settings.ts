@@ -10,6 +10,7 @@ import type WatchlistNotesPlugin from './main';
 import { BUILT_IN_TEMPLATES, TEMPLATE_COPY_PATHS } from './media/templates';
 import { MEDIA_TYPES, MEDIA_WORDS, MediaType } from './media/types';
 import { configuredSources, getSource, SOURCE_ORDER, SOURCES } from './sources';
+import { anilist } from './sources/anilist';
 import { jikan, MYANIMELIST, tenrai } from './sources/myanimelist';
 import { omdb } from './sources/omdb';
 import { tmdb } from './sources/tmdb';
@@ -77,7 +78,7 @@ export const DEFAULT_SETTINGS: WatchlistNotesSettings = {
 	movieSource: 'tmdb',
 	tvSource: 'tvmaze',
 	animeSource: 'tenrai',
-	mangaSource: 'jikan',
+	mangaSource: 'anilist',
 	useFallback: true,
 	hideAdult: true,
 	animeTitle: 'english',
@@ -457,6 +458,14 @@ export class WatchlistNotesSettingTab extends PluginSettingTab {
 					frag.appendText(' and ');
 					frag.createEl('a', { text: jikan.name, href: 'https://jikan.moe' });
 					frag.appendText(' services. Not affiliated with MyAnimeList. Each note links to the anime’s MyAnimeList page.');
+				}),
+			},
+			{
+				name: 'AniList',
+				desc: createFragment((frag) => {
+					frag.appendText('Manga information and covers from ');
+					frag.createEl('a', { text: anilist.name, href: 'https://anilist.co' });
+					frag.appendText('. Not affiliated with AniList. Each note links to the title’s AniList page.');
 				}),
 			},
 			{

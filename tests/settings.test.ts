@@ -20,7 +20,7 @@ describe('settings', () => {
 			movieSource: 'tmdb',
 			tvSource: 'tvmaze',
 			animeSource: 'tenrai',
-			mangaSource: 'jikan',
+			mangaSource: 'anilist',
 			useFallback: true,
 			hideAdult: true,
 			animeTitle: 'english',
